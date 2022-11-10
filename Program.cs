@@ -39,11 +39,16 @@ namespace UntapEdoConverter
                 // Check local is up to date
                 string localVersion = File.ReadAllText(UpdateDir);
                 if (localVersion.Equals(onlineVersion))
+                {
+                    Console.WriteLine("Using Local Database");
                     json = File.ReadAllText(CardDir);
+                }
             }
+
             // Download from online host
             if (json.Equals(string.Empty))
             {
+                Console.WriteLine("Updating Local Database. This may take a while.");
                 File.WriteAllText(UpdateDir, onlineVersion);
                 json = WebGetJSON(CardUrl);
                 File.WriteAllText(CardDir, json);
@@ -54,8 +59,8 @@ namespace UntapEdoConverter
             {
                 if(card.ContainsKey("name") && card.ContainsKey("id"))
                 {
-                    string name = card.SelectToken("name").ToString().ToLower();
-                    string id = card.SelectToken("id").ToString().ToLower();
+                    string name = card.SelectToken("name").ToString().ToLower().Trim();
+                    string id = card.SelectToken("id").ToString().ToLower().Trim();
                     cards.Add(name, id);
                 }
             }
@@ -70,6 +75,8 @@ namespace UntapEdoConverter
                 newFile = newFile.Remove(newFile.Length - 4);
                 newFile = newFile + ".ydk";
                 List<string> missing = new List<string>();
+
+                // Read File
                 using (FileStream fs = new FileStream(file, FileMode.Open, FileAccess.Read))
                 {
                     using (StreamReader sr = new StreamReader(fs))
@@ -82,7 +89,7 @@ namespace UntapEdoConverter
                                 int copies = 0;
                                 if(int.TryParse(string.Empty + line[0], out copies))
                                 {
-                                    string name = line.Remove(0, 2).ToLower();
+                                    string name = line.Remove(0, 2).ToLower().Trim();
                                     if (cards.ContainsKey(name))
                                     {
                                         for (int i = 0; i < copies; i++)
@@ -103,6 +110,8 @@ namespace UntapEdoConverter
                         }
                     }
                 }
+
+                // Make File
                 if(sb.Length > 0)
                 {
                     File.WriteAllText(newFile, sb.ToString());
